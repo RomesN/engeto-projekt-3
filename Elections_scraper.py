@@ -19,14 +19,14 @@ def arg_check() -> tuple:
             print(f"Skontroluj správnosť linku. Odpoveď serveru: \"{response.status_code}: {response.reason}\"")
             sys.exit()
 
-    return csv_n, response.text
+    return csv_n, response.text, url
 
 
 # creating clean csv file with header
 def csv_creation(filename) -> None:
     header = (
-        "Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné hlasy", "Kandidující strany",
-        "Občanská demokratická strana", "Řád národa - Vlastenecká unie", "CESTA ODPOVĚDNÉ SPOLEČNOSTI",
+        "Kód obce", "Název obce", "Voliči v seznamu", "Vydané obálky", "Platné hlasy", "Občanská demokratická strana",
+        "Řád národa - Vlastenecká unie", "CESTA ODPOVĚDNÉ SPOLEČNOSTI",
         "Česká str.sociálně demokrat.", "Radostné Česko", "STAROSTOVÉ A NEZÁVISLÍ",
         "Komunistická str.Čech a Moravy", "Strana zelených", "ROZUMNÍ-stop migraci,diktát.EU",
         "Strana svobodných občanů", "Blok proti islam.-Obran.domova", "Občanská demokratická aliance",
@@ -81,14 +81,15 @@ def obec_scrape(link_list) -> list:
         for row in filter(lambda x: x != '\n', rows):
             for cell in row.find_all("td"):
                 if (cell.attrs.get("class") is not None) or (cell.attrs.get("headers") is not None):
-                    if cell.attrs.get("class")[0] == "cislo" and cell.attrs.get("headers")[0] == "sa2":
+                    if cell.attrs.get("class")[0] == "cislo" and cell.attrs.get("headers")[-1] == "sa2":
                         row_to_add.append(cell.string)
-                    elif cell.attrs.get("class")[0] == "cislo" and cell.attrs.get("headers")[0] == "sa3":
+                    elif cell.attrs.get("class")[0] == "cislo" and cell.attrs.get("headers")[-1] == "sa3":
                         row_to_add.append(cell.string)
-                    elif cell.attrs.get("class")[0] == "cislo" and cell.attrs.get("headers")[0] == "t1sa2" \
-                            and cell.attrs.get("headers")[1] == "t1sb3":
+                    elif cell.attrs.get("class")[0] == "cislo" and cell.attrs.get("headers")[-1] == "sa6":
                         row_to_add.append(cell.string)
-    print(row_to_add)
+                    elif cell.attrs.get("class")[0] == "cislo" and ((cell.attrs.get("headers")[-1] == "t2sb3") or
+                                                                    (cell.attrs.get("headers")[-1] == "t1sb3")):
+                        row_to_add.append(cell.string)
     return row_to_add
 
 
@@ -101,11 +102,13 @@ def row_adding(filename, row) -> None:
 
 
 if __name__ == "__main__":
-    csv_name, resp = arg_check()
+    csv_name, resp, url_name = arg_check()
     soup = bs4.BeautifulSoup(resp, "html.parser")
     csv_creation(csv_name)
+    print(f"SŤAHUJEM Z VYBRANÉHO URL: {url_name}")
     links_list = links_to_scrape(soup)
-    print(links_list)
+    print(f"UKLADÁM DO SÚBORU: {csv_name}")
     for r in range(0, len(links_list)):
         row_t_add = obec_scrape(links_list[r])
         row_adding(csv_name, row_t_add)
+    print("KONČÍM Election-scraper.")
