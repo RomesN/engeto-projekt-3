@@ -125,5 +125,3 @@ if __name__ == "__main__":
         row_t_add = obec_scrape(links_list[r])
         row_adding(csv_name, row_t_add)
     print("KONČÍM Election-scraper.")
-
-    
