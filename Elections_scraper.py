@@ -126,4 +126,3 @@ if __name__ == "__main__":
         row_adding(csv_name, row_t_add)
     print("KONČÍM Election-scraper.")
 
- 
